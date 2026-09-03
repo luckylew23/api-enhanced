@@ -338,21 +338,29 @@ async function constructServer(moduleDefs) {
           process.env.ENABLE_GENERAL_UNBLOCK === 'true'
         ) {
           const song = moduleResponse.body.data[0]
-          if (
-            song.freeTrialInfo !== null ||
-            !song.url ||
-            [1, 4].includes(song.fee)
-          ) {
-            const {
-              matchID,
-            } = require('@neteasecloudmusicapienhanced/unblockmusic-utils')
-            logger.info('Starting unblock(uses general unblock):', req.query.id)
-            const result = await matchID(req.query.id)
-            song.url = result.data.url
-            song.freeTrialInfo = null
-            logger.info('Unblock success! url:', song.url)
+          if (song && (song.freeTrialInfo !== null || !song.url || [1, 4].includes(song.fee))) {
+            try {
+              const {
+                matchID,
+              } = require('@neteasecloudmusicapienhanced/unblockmusic-utils')
+              logger.info('Starting unblock(uses general unblock):', req.query.id)
+              const result = await matchID(req.query.id)
+              if (result && result.code === 200 && result.data && result.data.url) {
+                song.url = result.data.url
+                song.freeTrialInfo = null
+                logger.info('Unblock success! url:', song.url)
+              } else {
+                // 所有音源都没匹配到：保留原始链接（可能是试听片段），不要让整条请求崩掉
+                logger.warn(
+                  'Unblock failed, keep original url:',
+                  result && result.message,
+                )
+              }
+            } catch (e) {
+              logger.error('Error in general unblock:', e && e.message)
+            }
           }
-          if (song.url && song.url.includes('kuwo')) {
+          if (song && song.url && song.url.includes('kuwo')) {
             const proxy = process.env.PROXY_URL
             const useProxy = process.env.ENABLE_PROXY || 'false'
             if (useProxy === 'true' && proxy) {
