@@ -25,7 +25,7 @@ async function getApp() {
       } catch (err) {
         console.error('generateConfig failed (non-fatal):', err && err.message);
       }
-      const { serveNcmApi } = require('../server');
+      const { serveNcmApi } = require('../ncm-server');
       return serveNcmApi({ checkVersion: false });
     })();
     // 注意：getApp 内部异常会让 appPromise rejected，handler 会捕获并转成可读 500。

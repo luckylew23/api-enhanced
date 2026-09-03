@@ -1,6 +1,6 @@
 const fsPromises = require('fs/promises')
 const path = require('path')
-const server = require('../server')
+const server = require('../ncm-server')
 const logger = require('../util/logger.js')
 
 const exportFile = path.join(__dirname, 'moddef.json')

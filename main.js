@@ -48,16 +48,16 @@ moduleFiles.forEach((file) => {
 let serverModule = null
 
 /**
- * @type {Record<string, any> & import("./server")}
+ * @type {Record<string, any> & import("./ncm-server")}
  */
 module.exports = {
   get server() {
     if (!serverModule) {
-      serverModule = require('./server')
+      serverModule = require('./ncm-server')
     }
     return serverModule
   },
   ...obj,
 }
 
-Object.assign(module.exports, require('./server'))
+Object.assign(module.exports, require('./ncm-server'))
