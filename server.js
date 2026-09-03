@@ -449,16 +449,20 @@ async function serveNcmApi(options) {
 
   /** @type {import('express').Express & ExpressExtension} */
   const appExt = app
-  appExt.server = app.listen(port, host, () => {
-    console.log(`
+  // Vercel 等 Serverless 环境不监听端口，由平台把请求转发给导出的 app（见 api/index.js）。
+  // 本地 / SCF 等常规环境仍正常 app.listen。
+  if (process.env.VERCEL !== '1') {
+    appExt.server = app.listen(port, host, () => {
+      console.log(`
   ╔═╗╔═╗╦    ╔═╗╔╗╔╦ ╦╔═╗╔╗╔╔═╗╔═╗╔╦╗
   ╠═╣╠═╝║    ║╣ ║║║╠═╣╠═╣║║║║  ║╣  ║║
   ╩ ╩╩  ╩    ╚═╝╝╚╝╩ ╩╩ ╩╝╚╝╚═╝╚═╝═╩╝
     `)
-    logger.info(
-      `Server started successfully @ http://${host ? host : 'localhost'}:${port}`,
-    )
-  })
+      logger.info(
+        `Server started successfully @ http://${host ? host : 'localhost'}:${port}`,
+      )
+    })
+  }
 
   return appExt
 }
