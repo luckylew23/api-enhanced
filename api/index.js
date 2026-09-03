@@ -11,6 +11,18 @@ let appPromise = null;
 async function getApp() {
   if (!appPromise) {
     appPromise = (async () => {
+      const fs = require('fs');
+      const path = require('path');
+      const tmpPath = require('os').tmpdir();
+      // 镜像 app.js 的启动逻辑：保证 /tmp/anonymous_token 存在。
+      // 否则 util/request.js 在模块加载阶段会 readFileSync 该文件，冷启动时若文件不存在
+      // 直接抛 ENOENT -> 整个函数进程退出（Vercel 报 500 FUNCTION_INVOCATION_FAILED）。
+      // generateConfig() 仅在 register_anonimous 网络调用成功时才写该文件，
+      // 在 Serverless 上可能失败，所以这里先兜底建一个空文件。
+      const tokenPath = path.resolve(tmpPath, 'anonymous_token');
+      if (!fs.existsSync(tokenPath)) {
+        fs.writeFileSync(tokenPath, '', 'utf-8');
+      }
       try {
         const generateConfig = require('../generateConfig');
         await generateConfig();
