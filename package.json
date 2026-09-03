@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "nodemon app.js",
     "start": "node app.js",
-    "postinstall": "patch-package",
     "test": "mocha -r intelli-espower-loader -t 60000 server.test.js main.test.js --exit",
     "lint": "eslint \"**/*.{js,ts}\"",
     "lint-fix": "eslint --fix \"**/*.{js,ts}\"",
@@ -76,8 +75,7 @@
     "data"
   ],
   "dependencies": {
-    "@neteasecloudmusicapienhanced/unblockmusic-utils": "0.4.4",
-    "patch-package": "^8.0.1",
+    "@neteasecloudmusicapienhanced/unblockmusic-utils": "^0.4.4",
     "axios": "^1.20.0",
     "crypto-js": "^4.2.0",
     "dotenv": "^17.4.2",

@@ -17,10 +17,8 @@
       }
     }
   ],
-  "regions": ["hkg1"],
   "env": {
     "NODE_ENV": "production",
-    "ENABLE_GENERAL_UNBLOCK": "true",
     "ENABLE_FLAC": "true"
   }
 }

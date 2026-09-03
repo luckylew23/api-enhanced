@@ -26,18 +26,10 @@ const {
 } = require('../module/register_checktoken_v3')
 
 // 预先读取匿名token并缓存
-// 注意：该文件可能尚不存在（首次冷启动、Serverless 环境未执行 app.js 启动逻辑、
-// 或 generateConfig 拉取匿名 token 的网络请求失败）。缺失时兜底为空字符串，
-// 避免模块加载阶段 readFileSync 抛 ENOENT 导致整个进程退出。
-let anonymous_token = ''
-try {
-  anonymous_token = fs.readFileSync(
-    path.resolve(tmpPath, './anonymous_token'),
-    'utf-8',
-  )
-} catch (_) {
-  // file not found / unreadable -> 使用空 token，不影响其余接口
-}
+const anonymous_token = fs.readFileSync(
+  path.resolve(tmpPath, './anonymous_token'),
+  'utf-8',
+)
 const xeapiPublicKeyPath = path.resolve(tmpPath, './xeapi_public_key')
 let xeapi_public_key = null
 const loadXeapiPublicKey = () => {
