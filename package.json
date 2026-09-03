@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nodemon app.js",
     "start": "node app.js",
+    "postinstall": "patch-package",
     "test": "mocha -r intelli-espower-loader -t 60000 server.test.js main.test.js --exit",
     "lint": "eslint \"**/*.{js,ts}\"",
     "lint-fix": "eslint --fix \"**/*.{js,ts}\"",
@@ -111,6 +112,7 @@
     "lint-staged": "^16.4.0",
     "mocha": "^11.8.0",
     "nodemon": "^3.1.14",
+    "patch-package": "^8.0.1",
     "pkg": "^5.8.1",
     "power-assert": "^1.6.1",
     "prettier": "^3.9.6",
