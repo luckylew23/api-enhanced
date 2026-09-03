@@ -6,7 +6,7 @@ const request = require('./util/request')
 const packageJSON = require('./package.json')
 const exec = require('child_process').exec
 const cache = require('./util/apicache').middleware
-const { cookieToJson } = require('./util/index')
+const { cookieToJson, unblockMatch } = require('./util/index')
 const fileUpload = require('express-fileupload')
 const decode = require('safe-decode-uri-component')
 const logger = require('./util/logger.js')
@@ -344,7 +344,7 @@ async function constructServer(moduleDefs) {
                 matchID,
               } = require('@neteasecloudmusicapienhanced/unblockmusic-utils')
               logger.info('Starting unblock(uses general unblock):', req.query.id)
-              const result = await matchID(req.query.id)
+              const result = await unblockMatch(matchID, req.query.id)
               if (result && result.code === 200 && result.data && result.data.url) {
                 song.url = result.data.url
                 song.freeTrialInfo = null
