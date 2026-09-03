@@ -1,33 +1,21 @@
 'use strict';
 
-// Vercel Serverless 入口。
-// vercel.json 的 rewrite 把 /* 转发到 /api，本文件把 Node 的 req/res 直接交给 Express app 处理。
-// 与 app.js 的区别：不监听端口（Serverless 由平台接管），不检查版本（避免冷启动额外网络请求）。
-// 但必须先跑 generateConfig() 拉取 xeapi 公钥 / 匿名 token（写入 /tmp），否则 /song/url/v1 会因
-// "xeapi public key is missing" 而 404。
+// Vercel Serverless 入口（纯部署入口，不含业务逻辑）。
+// vercel.json 的 rewrite 把 /* 转发到 /api，本文件把 Node 的 req/res 交给 Express app 处理。
+// 与 app.js 的区别：不监听端口（Serverless 由平台接管）、不检查版本（避免冷启动额外网络请求）。
+// 业务逻辑（匿名 token 读取、解灰等）都在 server.js / util/request.js / generateConfig.js 中，
+// 且这些文件自身已对“文件可能不存在”等场景做了容错，不依赖本文件的特殊处理。
 
 let appPromise = null;
 
 async function getApp() {
   if (!appPromise) {
     appPromise = (async () => {
-      const fs = require('fs');
-      const path = require('path');
-      const tmpPath = require('os').tmpdir();
-      // 镜像 app.js 的启动逻辑：保证 /tmp/anonymous_token 存在。
-      // 否则 util/request.js 在模块加载阶段会 readFileSync 该文件，冷启动时若文件不存在
-      // 直接抛 ENOENT -> 整个函数进程退出（Vercel 报 500 FUNCTION_INVOCATION_FAILED）。
-      // generateConfig() 仅在 register_anonimous 网络调用成功时才写该文件，
-      // 在 Serverless 上可能失败，所以这里先兜底建一个空文件。
-      const tokenPath = path.resolve(tmpPath, 'anonymous_token');
-      if (!fs.existsSync(tokenPath)) {
-        fs.writeFileSync(tokenPath, '', 'utf-8');
-      }
+      // 拉取 xeapi 公钥 / 匿名 token（写入 /tmp）。失败不致命：仅影响个别接口。
       try {
         const generateConfig = require('../generateConfig');
         await generateConfig();
       } catch (err) {
-        // 拉取失败不致命：仅影响需要 xeapi 的个别接口，其余接口仍可工作。
         console.error('generateConfig failed (non-fatal):', err && err.message);
       }
       const { serveNcmApi } = require('../server');
@@ -42,11 +30,10 @@ module.exports = async function handler(req, res) {
 
   // Vercel 的 Node runtime 会把 handler 的【返回值】当作 HTTP 响应体发送。
   // 若直接 `return app(req, res)`，返回的是 Express app（一个 function 对象），
-  // Vercel 会尝试把它序列化 -> TypeError -> FUNCTION_INVOCATION_FAILED（500 崩溃）。
-  // 因此：① 不返回 app 的返回值；② 等待响应真正结束（res 'finish'）后再让 handler 完成。
+  // Vercel 会尝试把它序列化 -> TypeError -> 500 崩溃。因此不返回 app 的返回值，
+  // 而是等响应真正结束（res 'finish'）后再让 handler 完成。
   //
-  // 另外 Vercel rewrite 可能把 req.url 改为 "/api"，这里归一化回原始路径，
-  // 让 Express 能按 /search、/song/url/v1 等路由匹配。
+  // 同时把 rewrite 可能带上的 "/api" 前缀剥离，让 Express 按 /search、/song/url/v1 等路由匹配。
   if (req.url && req.url.startsWith('/api')) {
     req.url = req.url === '/api' ? '/' : req.url.slice(4) || '/';
   }
