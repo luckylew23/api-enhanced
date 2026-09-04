@@ -48,8 +48,8 @@ jobs:
 
       - name: Configure git identity
         run: |
-          git config --global user.name "takanashi-hoshino-agent[bot]"
-          git config --global user.email "takanashi-hoshino-agent[bot]@users.noreply.github.com"
+          git config --global user.name "yukka-agent[bot]"
+          git config --global user.email "yukka-agent[bot]@users.noreply.github.com"
 
       - name: Run opencode
         uses: anomalyco/opencode/github@latest
@@ -57,7 +57,7 @@ jobs:
           OPENCODE_API_KEY: ${{ steps.cfg.outputs.opencode_api_key }}
           GITHUB_TOKEN: ${{ steps.token.outputs.token }}
         with:
-          model: opencode/muse-spark-1.2-contributor-free
+          model: opencode/muse-spark-1.3-contributor-free
           use_github_token: true
           prompt: |
             ${{ steps.cfg.outputs.opencode_prompt }}

@@ -54,7 +54,7 @@ jobs:
       - name: Run automation
         env:
           GITHUB_TOKEN: ${{ steps.token.outputs.token }}
-          MODEL: opencode/muse-spark-1.2-contributor-free
+          MODEL: opencode/muse-spark-1.3-contributor-free
           OPENCODE_API_KEY: ${{ steps.cfg.outputs.opencode_api_key }}
           ISSUE_PROMPT: ${{ steps.cfg.outputs.opencode_prompt }}
           PR_PROMPT: |
