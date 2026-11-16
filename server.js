@@ -467,10 +467,12 @@ async function serveNcmApi(options) {
     })
   const constructServerSubmission = constructServer(options.moduleDefs)
 
-  const [_, app] = await Promise.all([
-    checkVersionSubmission,
-    constructServerSubmission,
-  ])
+  // checkVersion 依赖 npm 网络(exec)，在 Serverless/受限网络下可能长时间挂起；
+  // 不再与 listen 同步等待，改为后台异步提示，避免阻塞服务就绪。
+  if (checkVersionSubmission) {
+    checkVersionSubmission.catch(() => {})
+  }
+  const app = await constructServerSubmission
 
   spinner.stop()
 
