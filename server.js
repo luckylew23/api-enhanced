@@ -201,6 +201,25 @@ async function constructServer(moduleDefs) {
    * Serving static files
    */
   app.use(express.static(path.join(__dirname, 'public')))
+
+  /**
+   * Readiness probe (diagnostics): reports process identity, boot mode and
+   * environment — lets you verify from outside whether the freshly deployed
+   * bundle is actually the one answering requests on SCF.
+   */
+  app.get('/__ready', (req, res) => {
+    res.json({
+      ok: true,
+      pid: process.pid,
+      node: process.version,
+      cwd: process.cwd(),
+      port: process.env.PORT || '',
+      bootstrap: process.env.SCF_BOOTSTRAP_V2 || '',
+      uptimeSec: Math.round(process.uptime()),
+      startedAt: new Date(Date.now() - process.uptime() * 1000).toISOString(),
+      packageVersion: packageJSON.version,
+    })
+  })
   /**
    * CORS & Preflight request
    */

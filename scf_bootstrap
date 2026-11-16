@@ -1,12 +1,17 @@
 #!/bin/bash
+# SCF Web 函数自定义运行时入口（诊断版 v2）
+# 平台 init 完成判定 = 监听端口就绪；任何找不到 node / 启动异常都会表现为
+# 450 InitContainerTimeout，因此这里把关键信息打到函数日志里自证。
 export PORT=9000
-if [ -x /var/lang/node18/bin/node ]; then
-  exec /var/lang/node18/bin/node app.js
-fi
-if [ -x /var/lang/node20/bin/node ]; then
-  exec /var/lang/node20/bin/node app.js
-fi
-if [ -x /var/lang/node16/bin/node ]; then
-  exec /var/lang/node16/bin/node app.js
-fi
-exec node app.js
+export SCF_BOOTSTRAP_V2=exec-via-bootstrap
+echo "[bootstrap-v2] entry ok, cwd=$(pwd), node search:"
+
+for n in /var/lang/node20/bin/node /var/lang/node18/bin/node /var/lang/node16/bin/node /usr/local/bin/node /usr/bin/node "$(command -v node 2>/dev/null)"; do
+  if [ -n "$n" ] && [ -x "$n" ]; then
+    echo "[bootstrap-v2] using $n ($("$n" -v))"
+    exec "$n" app.js
+  fi
+done
+
+echo "[bootstrap-v2] FATAL: no executable node found in this runtime image"
+exit 1
