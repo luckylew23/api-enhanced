@@ -17,14 +17,19 @@ echo "[2/4] 安装生产依赖（仅 prod，跳过脚本，走国内镜像）"
 npm ci --omit=dev --ignore-scripts --no-audit --no-fund \
   --registry=https://registry.npmmirror.com >/dev/null
 
-echo "[3/4] 剔除无引用的大图片与系统垃圾"
-# 这两张 PNG 在仓库内无任何页面引用，纯占体积（合计 ~3.3MB）；
-# 有引用的 docs/aigen.png、docs/netease.png、static/eapi_*.png 保留。
-rm -f public/static/module_test.png public/static/2170.png
+echo "[3/4] 剔除大图片与系统垃圾（方案 A：函数仅当 API，public 图片无人经浏览器访问）"
+# 删除 public 下所有 >1MB 的 PNG：既含无引用孤儿(module_test/2170)，
+# 也含文档站示意图(aigen/netease/eapi_params/eapi_response)。
+# 代价：docsify 文档站与 api_decrypt 页的示意图变破图——但默认测试域名
+# 对 HTML 强制下载，这些页面本就走不到浏览器渲染，影响为零。
+find public -type f -iname "*.png" -size +1M -delete
+find public -type f -iname "*.jpg" -size +1M -delete 2>/dev/null || true
 find . -name '.DS_Store' -delete
 rm -f bootstrap # 防呆：SCF 要求入口文件名为 scf_bootstrap
 
 echo "[4/4] 打包 → $OUT"
+# 必须先删旧包：zip 对已存在的归档是"增量更新"，不会移除已删文件的旧条目
+rm -f "$OUT"
 zip -qr "$OUT" .
 
 ls -la "$OUT" | awk '{printf "完成: %.1f MB\n", $5/1048576}'
