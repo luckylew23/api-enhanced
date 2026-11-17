@@ -105,9 +105,19 @@ function getCloudIndex(query, request) {
  */
 async function cloudMatch(id, query, request) {
   if (process.env.ENABLE_CLOUD_UNBLOCK !== 'true') return null
-  if (!query || !query.cookie || !cookieSignature(query.cookie)) return null
+  // 请求未带 cookie 时回退到服务端 NETEASE_COOKIE（与 createOption 的
+  // 回退语义一致）。判据用 cookieSignature 而非对象真值：匿名请求里
+  // query.cookie 常是 {}（truthy 空对象），直接取它会挡住环境变量回退。
+  const raw = query && query.cookie
+  const effCookie = cookieSignature(raw)
+    ? raw
+    : process.env.NETEASE_COOKIE || ''
+  if (!cookieSignature(effCookie)) return null
 
-  const map = await getCloudIndex(query, request)
+  const map = await getCloudIndex(
+    Object.assign({}, query, { cookie: effCookie }),
+    request,
+  )
   if (!map) return null
   const cloudId = map.get(String(id))
   if (!cloudId) return null
@@ -119,7 +129,7 @@ async function cloudMatch(id, query, request) {
         ids: JSON.stringify([String(cloudId)]),
         br: '999000',
       },
-      createOption(query, 'weapi'),
+      createOption(Object.assign({}, query, { cookie: effCookie }), 'weapi'),
     )
     const song = res && res.body && res.body.data && res.body.data[0]
     if (song && song.code === 200 && song.url) {
