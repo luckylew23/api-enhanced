@@ -351,12 +351,10 @@ async function constructServer(moduleDefs) {
           process.env.ENABLE_GENERAL_UNBLOCK === 'true'
         ) {
           const song = moduleResponse.body.data[0]
-          if (
-            song &&
-            (song.freeTrialInfo !== null ||
-              !song.url ||
-              [1, 4].includes(song.fee))
-          ) {
+          // 只在官方确实没给可播资源时解灰：无链接、或只有试听片段。
+          // 旧条件对 fee=1/4 一律抢答，导致 VIP 账号本可播的官方原曲
+          // 也被换成第三方（酷我）音频、附带营销语音播报。
+          if (song && (!song.url || song.freeTrialInfo !== null)) {
             try {
               const {
                 matchID,
