@@ -22,8 +22,7 @@ echo "[3/4] 剔除大图片与系统垃圾（方案 A：函数仅当 API，publi
 # 也含文档站示意图(aigen/netease/eapi_params/eapi_response)。
 # 代价：docsify 文档站与 api_decrypt 页的示意图变破图——但默认测试域名
 # 对 HTML 强制下载，这些页面本就走不到浏览器渲染，影响为零。
-find public -type f -iname "*.png" -size +1M -delete
-find public -type f -iname "*.jpg" -size +1M -delete 2>/dev/null || true
+find public \( -type f -iname "*.png" -o -type f -iname "*.jpg" \) -size +1M -delete
 find . -name '.DS_Store' -delete
 rm -f bootstrap # 防呆：SCF 要求入口文件名为 scf_bootstrap
 
