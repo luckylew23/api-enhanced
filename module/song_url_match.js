@@ -13,8 +13,20 @@ module.exports = async (query, request) => {
     const result = await unblockMatch(matchID, query.id, query.source)
     const proxy = process.env.PROXY_URL
     logger.info('开始解灰', query.id, result)
+    // 未命中时 unblockMatch 返回 data:null，直接读 result.data.url 会抛
+    // TypeError，把"无可用音源"变成误导性的 500；此处显式兜底。
+    if (!result || !result.data || !result.data.url) {
+      return {
+        status: 200,
+        body: {
+          code: 500,
+          msg: (result && result.message) || 'No available source found',
+          data: [],
+        },
+      }
+    }
     const useProxy = process.env.ENABLE_PROXY || 'false'
-    if (result.data.url && result.data.url.includes('kuwo')) {
+    if (result.data.url.includes('kuwo')) {
       result.proxyUrl =
         useProxy === 'true' ? proxy + result.data.url : result.data.url
     }
