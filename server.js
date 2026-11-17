@@ -16,6 +16,7 @@ const fileUpload = require('express-fileupload')
 const decode = require('safe-decode-uri-component')
 const logger = require('./util/logger.js')
 const { APP_CONF } = require('./util/config.json')
+const { accessKeyMiddleware } = require('./util/accessKey')
 
 /**
  * The version check result.
@@ -196,6 +197,10 @@ async function constructServer(moduleDefs) {
   const { CORS_ALLOW_ORIGIN } = process.env
   const allowOrigins = parseCorsAllowOrigins(CORS_ALLOW_ORIGIN)
   app.set('trust proxy', true)
+  /**
+   * Access key gate (ACCESS_KEY env; unset = pass-through)
+   */
+  app.use(accessKeyMiddleware)
 
   /**
    * Serving static files
@@ -268,7 +273,13 @@ async function constructServer(moduleDefs) {
   /**
    * Cache
    */
-  app.use(cache('2 minutes', (_, res) => res.statusCode === 200))
+  // appendKey 隔离缓存空间：同一 URL 在"口令验证/未验证"下不得互享
+  // （header 方式的口令不进 cache key，靠 appendKey 区分 owner/guest）
+  app.use(
+    cache('2 minutes', (_, res) => res.statusCode === 200, {
+      appendKey: (req) => (req.identityAllowed === false ? 'guest' : 'owner'),
+    }),
+  )
 
   /**
    * Special Routers
@@ -309,6 +320,7 @@ async function constructServer(moduleDefs) {
             : req.cookies
       const query = Object.assign({}, req.query, req.body, req.files, {
         cookie,
+        __identityAllowed: req.identityAllowed !== false,
       })
 
       try {

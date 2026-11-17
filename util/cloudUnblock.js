@@ -111,7 +111,9 @@ async function cloudMatch(id, query, request) {
   const raw = query && query.cookie
   const effCookie = cookieSignature(raw)
     ? raw
-    : process.env.NETEASE_COOKIE || ''
+    : query && query.__identityAllowed === false
+      ? ''
+      : process.env.NETEASE_COOKIE || ''
   if (!cookieSignature(effCookie)) return null
 
   const map = await getCloudIndex(

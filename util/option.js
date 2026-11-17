@@ -1,4 +1,5 @@
 const { getCookieHeader, hasCookie } = require('./index')
+const { identityAllowed } = require('./accessKey')
 
 const createOption = (query, crypto = '', checkToken = false) => {
   const headerCookie = getCookieHeader(query.headers)
@@ -9,7 +10,9 @@ const createOption = (query, crypto = '', checkToken = false) => {
       ? query.cookie
       : hasCookie(headerCookie)
         ? headerCookie
-        : process.env.NETEASE_COOKIE,
+        : identityAllowed(query)
+          ? process.env.NETEASE_COOKIE
+          : undefined,
     ua: query.ua || '',
     proxy: query.proxy,
     realIP: query.realIP,

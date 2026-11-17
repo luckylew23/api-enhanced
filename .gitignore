@@ -11,3 +11,6 @@ anonymous_token
 .env
 IFLOW.md
 precompiled
+# 个人本地文档（部署状态/记忆），不入公开仓库
+memory.md
+DEPLOY-HUAWEICLOUD.md
