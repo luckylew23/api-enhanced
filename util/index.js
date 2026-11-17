@@ -206,7 +206,19 @@ async function matchByUnmProviders(id) {
  * @param {string} [source] 显式指定音源；不传则按 UNBLOCK_SOURCE_ORDER 依次尝试
  * @returns {Promise<{code:number,message:string,data:object|null}>} 与 matchID 同构的结果
  */
-async function unblockMatch(matchID, id, source) {
+async function unblockMatch(matchID, id, source, opts) {
+  // 云盘优先（ENABLE_CLOUD_UNBLOCK=true 且传入 query/request 时启用）：
+  // 命中返回官方 CDN 直链，未命中透明落到下面的第三方池。
+  if (!source && opts && opts.query && typeof opts.request === 'function') {
+    try {
+      const { cloudMatch } = require('./cloudUnblock')
+      const viaCloud = await cloudMatch(id, opts.query, opts.request)
+      if (viaCloud) return viaCloud
+    } catch (error) {
+      logger.error('Cloud unblock layer failed:', error && error.message)
+    }
+  }
+
   // 显式指定音源时只试该音源，保持 /song/url/match?source=xxx 的既有语义
   if (source) {
     if (source === 'unm') {

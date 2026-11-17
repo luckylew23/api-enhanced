@@ -364,7 +364,10 @@ async function constructServer(moduleDefs) {
                 req.query.id,
               )
               // 走 unblockMatch：假成功外链过滤 + http→https 升级 + 多音源顺序兜底
-              const result = await unblockMatch(matchID, req.query.id)
+              const result = await unblockMatch(matchID, req.query.id, null, {
+                query: req.query ? { cookie: query.cookie } : {},
+                request,
+              })
               if (
                 result &&
                 result.code === 200 &&

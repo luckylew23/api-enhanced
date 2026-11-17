@@ -20,7 +20,10 @@ module.exports = async (query, request) => {
   const options = createOption(query, 'xeapi')
   if (query.unblock === 'true') {
     try {
-      const result = await unblockMatch(matchID, query.id, query.source)
+      const result = await unblockMatch(matchID, query.id, query.source, {
+        query,
+        request,
+      })
       logger.info('Starting unblock(uses modules unblock):', query.id, result)
       const useProxy = process.env.ENABLE_PROXY || 'false'
       let proxyUrl = ''

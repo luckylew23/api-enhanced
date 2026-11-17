@@ -10,7 +10,10 @@ module.exports = async (query, request) => {
     const {
       matchID,
     } = require('@neteasecloudmusicapienhanced/unblockmusic-utils')
-    const result = await unblockMatch(matchID, query.id, query.source)
+    const result = await unblockMatch(matchID, query.id, query.source, {
+      query,
+      request,
+    })
     const proxy = process.env.PROXY_URL
     logger.info('开始解灰', query.id, result)
     // 未命中时 unblockMatch 返回 data:null，直接读 result.data.url 会抛
