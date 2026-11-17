@@ -84,18 +84,18 @@ const encode = encodeURIComponent
 // “假解灰”链接，VIP 歌通常播不了。解灰时应视为无效，继续尝试下一个真源。
 const FAKE_UNBLOCK_URL_MARK = 'music.163.com/song/media/outer/url'
 
-// 解灰音源模块遍历顺序：与解灰包 modules 目录的默认（字母序）遍历顺序保持一致，
-// 不改变既有音源优先级；在此显式列出，只是为了把“假成功外链则跳过、继续试下一个真源”
-// 的判定放进遍历过程中（解灰包自身的遍历无法从外部干预单个音源的结果）。
+// 解灰音源遍历顺序：unm 置首（2026-11-17 逐源实测：其余第三方 API 当前全部
+// 拿不到歌，白等 ~4.2s 才轮到 unm；unm 背后 bodian/kuwo 命中率最佳）。
+// 其余源保留作备胎（unm 偶发失效或对方恢复时可兜底），死源单轮通常 <1.5s 且
+// 单源异常不中断遍历。不再包含 'bugpk'——解灰包 modules 中并无该模块（幻影条目）。
 const UNBLOCK_SOURCE_ORDER = [
-  'bugpk',
+  'unm',
   'byfuns',
   'ddyr',
   'gdmusic',
   'msls',
   'oi',
   'qijieya',
-  'unm',
 ]
 
 // unm 音源内部的 UNM provider 顺序与范围（沿用此前实测确定的结果）：
