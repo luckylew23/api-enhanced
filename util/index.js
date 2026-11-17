@@ -98,6 +98,20 @@ const UNBLOCK_SOURCE_ORDER = [
   'qijieya',
 ]
 
+// UNM 内部用 `if (process.env.X)` 判断开关，任何非空字符串都为真——
+// 因此 `SELECT_MAX_BR=false` / `FOLLOW_SOURCE_ORDER=false` 会被误判成开启。
+// SELECT_MAX_BR 模式要等全部音源返回再挑最高码率，实测把单曲解灰从
+// ~180ms 拖到 ~5.2s（线上 5s+ 的元凶之一）。这里按常见假值写法归一化。
+for (const key of ['SELECT_MAX_BR', 'FOLLOW_SOURCE_ORDER']) {
+  const raw = process.env[key]
+  if (
+    typeof raw === 'string' &&
+    ['false', '0', 'no', 'off', ''].includes(raw.trim().toLowerCase())
+  ) {
+    delete process.env[key]
+  }
+}
+
 // unm 音源内部的 UNM provider 顺序与范围（沿用此前实测确定的结果）：
 //   kuwo > bodian > pyncmd > bilivideo 命中率与响应最佳，其余作兜底。
 // 不含 youtube / youtubedl（部署地域访问不通）。
